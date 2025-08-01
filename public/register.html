@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registrace - Rychlé Rýče</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="style.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigační lišta -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-success">
+        <div class="container">
+            <a class="navbar-brand text-white fw-bold" href="/">
+                <i class="fas fa-seedling me-2"></i>Rychlé Rýče
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a href="/" class="btn btn-outline-light btn-sm me-2">Hlavní stránka</a>
+                <a href="/login" class="btn btn-light btn-sm">Přihlásit se</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Registrační formulář -->
+    <div class="container mt-4">
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-6">
+                <div class="form-container">
+                    <div class="text-center mb-4">
+                        <i class="fas fa-user-plus fa-3x text-success mb-3"></i>
+                        <h2>Registrace</h2>
+                        <p class="text-muted">Vytvořte si nový účet</p>
+                    </div>
+
+                    <!-- Výběr role -->
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Chci se registrovat jako:</label>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="role" id="customer" value="customer" checked>
+                                    <label class="form-check-label" for="customer">
+                                        <i class="fas fa-user me-2 text-primary"></i>
+                                        <strong>Zákazník</strong><br>
+                                        <small class="text-muted">Chci objednat zahradní služby</small>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="role" id="worker" value="worker">
+                                    <label class="form-check-label" for="worker">
+                                        <i class="fas fa-hammer me-2 text-success"></i>
+                                        <strong>Brigádník</strong><br>
+                                        <small class="text-muted">Chci poskytovat zahradní služby</small>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <form id="registerForm">
+                        <!-- Základní údaje -->
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="name" class="form-label">
+                                    <i class="fas fa-user me-2"></i>Jméno a příjmení *
+                                </label>
+                                <input type="text" class="form-control" id="name" name="name" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="phone" class="form-label">
+                                    <i class="fas fa-phone me-2"></i>Telefon *
+                                </label>
+                                <input type="tel" class="form-control" id="phone" name="phone" placeholder="+420123456789" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="email" class="form-label">
+                                <i class="fas fa-envelope me-2"></i>Email *
+                            </label>
+                            <input type="email" class="form-control" id="email" name="email" required>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="password" class="form-label">
+                                    <i class="fas fa-lock me-2"></i>Heslo *
+                                </label>
+                                <input type="password" class="form-control" id="password" name="password" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="confirmPassword" class="form-label">
+                                    <i class="fas fa-lock me-2"></i>Potvrzení hesla *
+                                </label>
+                                <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" required>
+                            </div>
+                        </div>
+
+                        <!-- Pole pro brigádníky -->
+                        <div id="workerFields" class="d-none">
+                            <hr class="my-4">
+                            <h5 class="text-success mb-3">
+                                <i class="fas fa-tools me-2"></i>Informace pro brigádníky
+                            </h5>
+                            
+                            <div class="mb-3">
+                                <label for="area" class="form-label">
+                                    <i class="fas fa-map-marker-alt me-2"></i>Oblast působení
+                                </label>
+                                <input type="text" class="form-control" id="area" name="area" placeholder="např. Praha, Brno, Ostrava...">
+                                <div class="form-text">Město nebo region, kde chcete pracovat</div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">
+                                    <i class="fas fa-toolbox me-2"></i>Jaké nářadí máte k dispozici?
+                                </label>
+                                <div class="row g-2">
+                                    <div class="col-md-6">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="tool_sekacka" name="tools" value="sekacka">
+                                            <label class="form-check-label" for="tool_sekacka">
+                                                <i class="fas fa-cut me-1"></i>Sekačka na trávu
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="tool_nuzky" name="tools" value="nuzky">
+                                            <label class="form-check-label" for="tool_nuzky">
+                                                <i class="fas fa-cut me-1"></i>Zahradní nůžky
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="tool_pila" name="tools" value="pila">
+                                            <label class="form-check-label" for="tool_pila">
+                                                <i class="fas fa-cut me-1"></i>Pila
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="tool_stetce" name="tools" value="stetce">
+                                            <label class="form-check-label" for="tool_stetce">
+                                                <i class="fas fa-paint-brush me-1"></i>Štětce a válečky
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="tool_lestve" name="tools" value="lestve">
+                                            <label class="form-check-label" for="tool_lestve">
+                                                <i class="fas fa-step-forward me-1"></i>Žebřík/lešení
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="tool_jine" name="tools" value="jine">
+                                            <label class="form-check-label" for="tool_jine">
+                                                <i class="fas fa-tools me-1"></i>Jiné nářadí
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-success w-100 mb-3">
+                            <i class="fas fa-user-plus me-2"></i>Registrovat se
+                        </button>
+                    </form>
+
+                    <div class="text-center">
+                        <p class="mb-0">Už máte účet? <a href="/login" class="text-success">Přihlaste se</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script src="app.js"></script>
+    <script>
+        // Zobrazení/skrytí polí pro brigádníky
+        document.querySelectorAll('input[name="role"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                const workerFields = document.getElementById('workerFields');
+                if (this.value === 'worker') {
+                    workerFields.classList.remove('d-none');
+                } else {
+                    workerFields.classList.add('d-none');
+                }
+            });
+        });
+
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            
+            // Zpracování dat
+            const registerData = {
+                name: formData.get('name'),
+                email: formData.get('email'),
+                phone: formData.get('phone'),
+                password: formData.get('password'),
+                role: document.querySelector('input[name="role"]:checked').value
+            };
+
+            // Přidání dat pro brigádníky
+            if (registerData.role === 'worker') {
+                registerData.area = formData.get('area');
+                registerData.tools = Array.from(document.querySelectorAll('input[name="tools"]:checked'))
+                    .map(cb => cb.value);
+            }
+
+            // Validace
+            const requiredFields = ['name', 'email', 'phone', 'password'];
+            const errors = validateForm(registerData, requiredFields);
+
+            // Kontrola shody hesel
+            const confirmPassword = formData.get('confirmPassword');
+            if (registerData.password !== confirmPassword) {
+                errors.push('Hesla se neshodují');
+            }
+
+            // Kontrola délky hesla
+            if (registerData.password.length < 6) {
+                errors.push('Heslo musí mít alespoň 6 znaků');
+            }
+
+            if (errors.length > 0) {
+                showNotification(errors.join('<br>'), 'danger');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(registerData)
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    showNotification('Registrace úspěšná! Přesměrovávám na přihlášení...', 'success');
+                    setTimeout(() => {
+                        window.location.href = '/login';
+                    }, 2000);
+                } else {
+                    showNotification(result.error || 'Chyba při registraci', 'danger');
+                }
+            } catch (error) {
+                console.error('Chyba při registraci:', error);
+                showNotification('Chyba spojení se serverem', 'danger');
+            }
+        });
+    </script>
+</body>
+</html>

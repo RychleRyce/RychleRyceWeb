@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Přihlášení - Rychlé Rýče</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="style.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigační lišta -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-success">
+        <div class="container">
+            <a class="navbar-brand text-white fw-bold" href="/">
+                <i class="fas fa-seedling me-2"></i>Rychlé Rýče
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a href="/" class="btn btn-outline-light btn-sm">Zpět na hlavní stránku</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Přihlašovací formulář -->
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-6 col-lg-4">
+                <div class="form-container">
+                    <div class="text-center mb-4">
+                        <i class="fas fa-user-circle fa-3x text-success mb-3"></i>
+                        <h2>Přihlášení</h2>
+                        <p class="text-muted">Zadejte své přihlašovací údaje</p>
+                    </div>
+
+                    <form id="loginForm">
+                        <div class="mb-3">
+                            <label for="email" class="form-label">
+                                <i class="fas fa-envelope me-2"></i>Email
+                            </label>
+                            <input type="email" class="form-control" id="email" name="email" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="password" class="form-label">
+                                <i class="fas fa-lock me-2"></i>Heslo
+                            </label>
+                            <input type="password" class="form-control" id="password" name="password" required>
+                        </div>
+
+                        <button type="submit" class="btn btn-success w-100 mb-3">
+                            <i class="fas fa-sign-in-alt me-2"></i>Přihlásit se
+                        </button>
+                    </form>
+
+                    <div class="text-center">
+                        <p class="mb-0">Nemáte účet? <a href="/register" class="text-success">Registrujte se</a></p>
+                    </div>
+
+                    <!-- Demo účty -->
+                    <div class="mt-4 p-3 bg-light rounded">
+                        <h6 class="text-center mb-3">Demo účty pro testování:</h6>
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-outline-success btn-sm" onclick="fillDemo('admin')">
+                                <i class="fas fa-crown me-2"></i>Admin (admin@rychleryce.cz)
+                            </button>
+                            <small class="text-muted text-center">Heslo: admin123</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script src="app.js"></script>
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const loginData = {
+                email: formData.get('email'),
+                password: formData.get('password')
+            };
+
+            // Validace
+            const errors = validateForm(loginData, ['email', 'password']);
+            if (errors.length > 0) {
+                showNotification(errors.join('<br>'), 'danger');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(loginData)
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    showNotification('Přihlášení úspěšné! Přesměrovávám...', 'success');
+                    
+                    // Přesměrování podle role
+                    setTimeout(() => {
+                        switch (result.role) {
+                            case 'customer':
+                                window.location.href = '/customer-dashboard';
+                                break;
+                            case 'worker':
+                                window.location.href = '/worker-dashboard';
+                                break;
+                            case 'admin':
+                                window.location.href = '/admin-panel';
+                                break;
+                            default:
+                                window.location.href = '/';
+                        }
+                    }, 1500);
+                } else {
+                    showNotification(result.error || 'Chyba při přihlašování', 'danger');
+                }
+            } catch (error) {
+                console.error('Chyba při přihlašování:', error);
+                showNotification('Chyba spojení se serverem', 'danger');
+            }
+        });
+
+        // Vyplnění demo údajů
+        function fillDemo(type) {
+            if (type === 'admin') {
+                document.getElementById('email').value = 'admin@rychleryce.cz';
+                document.getElementById('password').value = 'admin123';
+            }
+        }
+    </script>
+</body>
+</html>
