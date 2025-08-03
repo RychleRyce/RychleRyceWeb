@@ -1,6 +1,0 @@
-# Komentáře začínají #
-node_modules/          # Ignoruje celou složku
-*.log                  # Ignoruje všechny soubory s příponou .log
-.env                   # Ignoruje konkrétní soubor
-public/uploads/*       # Ignoruje vše uvnitř složky
-!public/uploads/.gitkeep  # KROMĚ tohoto souboru (vykřičník = výjimka)
