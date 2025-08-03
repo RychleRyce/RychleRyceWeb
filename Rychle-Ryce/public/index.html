@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rychlé Rýče - Zahradní služby</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="style.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigační lišta -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-success">
+        <div class="container">
+            <a class="navbar-brand text-white fw-bold" href="/">
+                <i class="fas fa-seedling me-2"></i>Rychlé Rýče
+            </a>
+            <div class="navbar-nav ms-auto">
+                <div id="user-info" class="d-none">
+                    <span class="text-white me-3">Vítejte, <span id="user-name"></span>!</span>
+                    <button class="btn btn-outline-light btn-sm" onclick="logout()">Odhlásit se</button>
+                </div>
+                <div id="auth-buttons">
+                    <a href="/login" class="btn btn-outline-light btn-sm me-2">Přihlásit se</a>
+                    <a href="/register" class="btn btn-light btn-sm">Registrovat se</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero sekce -->
+    <div class="hero-section">
+        <div class="container text-center text-white">
+            <h1 class="display-4 fw-bold mb-4">🌱 Rychlé Rýče</h1>
+            <p class="lead mb-5">Profesionální zahradní služby na dosah ruky</p>
+            <div id="guest-content">
+                <p class="mb-4">Vyberte si typ práce a objednejte si naše služby:</p>
+            </div>
+            <div id="customer-content" class="d-none">
+                <p class="mb-4">Vyberte si typ práce, kterou potřebujete:</p>
+            </div>
+            <div id="worker-content" class="d-none">
+                <p class="mb-4">Podívejte se na dostupné zakázky ve svém dashboardu</p>
+                <a href="/worker-dashboard" class="btn btn-success btn-lg">Přejít do dashboardu</a>
+            </div>
+            <div id="admin-content" class="d-none">
+                <p class="mb-4">Spravujte objednávky a brigádníky</p>
+                <a href="/admin-panel" class="btn btn-warning btn-lg">Admin panel</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Výběr služeb -->
+    <div class="container my-5" id="services-section">
+        <div class="row g-4">
+            <div class="col-md-6 col-lg-3">
+                <div class="service-card" onclick="selectService('sekani_travy')">
+                    <div class="service-icon">
+                        <i class="fas fa-cut fa-3x text-success"></i>
+                    </div>
+                    <h4 class="mt-3">Sekání trávy</h4>
+                    <p class="text-muted">Profesionální sekání trávníků</p>
+                    <p class="price-estimate"><strong>Cena: ~20 Kč/m²</strong></p>
+                </div>
+            </div>
+            
+            <div class="col-md-6 col-lg-3">
+                <div class="service-card" onclick="selectService('strhani_stromu')">
+                    <div class="service-icon">
+                        <i class="fas fa-tree fa-3x text-success"></i>
+                    </div>
+                    <h4 class="mt-3">Stříhání stromů/keřů</h4>
+                    <p class="text-muted">Odborné ořezávání a tvarování</p>
+                    <p class="price-estimate"><strong>Cena: ~500 Kč/strom</strong></p>
+                </div>
+            </div>
+            
+            <div class="col-md-6 col-lg-3">
+                <div class="service-card" onclick="selectService('natrani_plotu')">
+                    <div class="service-icon">
+                        <i class="fas fa-paint-roller fa-3x text-success"></i>
+                    </div>
+                    <h4 class="mt-3">Natírání plotu</h4>
+                    <p class="text-muted">Ochrana a obnova plotů</p>
+                    <p class="price-estimate"><strong>Cena: ~15 Kč/m</strong></p>
+                </div>
+            </div>
+            
+            <div class="col-md-6 col-lg-3">
+                <div class="service-card" onclick="selectService('jina_prace')">
+                    <div class="service-icon">
+                        <i class="fas fa-tools fa-3x text-success"></i>
+                    </div>
+                    <h4 class="mt-3">Jiná práce</h4>
+                    <p class="text-muted">Další zahradní služby</p>
+                    <p class="price-estimate"><strong>Cena: ~200 Kč/hod</strong></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white py-4 mt-5">
+        <div class="container text-center">
+            <p>&copy; 2025 Rychlé Rýče. Všechna práva vyhrazena.</p>
+            <p class="mb-0">
+                <i class="fas fa-phone me-2"></i>+420 123 456 789
+                <i class="fas fa-envelope ms-3 me-2"></i>info@rychleryce.cz
+            </p>
+        </div>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script src="app.js"></script>
+    <script>
+        // Kontrola přihlášení při načtení stránky
+        document.addEventListener('DOMContentLoaded', checkAuth);
+
+        function selectService(serviceType) {
+            // Zkontrolujeme, zda je uživatel přihlášen jako zákazník
+            fetch('/api/check-auth')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.authenticated && data.role === 'customer') {
+                        // Přesměrování na objednávkový formulář s vybraným typem služby
+                        window.location.href = `/order-form?service=${serviceType}`;
+                    } else {
+                        // Pokud není přihlášen jako zákazník, přesměrujeme na přihlášení
+                        alert('Pro objednání služby se musíte přihlásit jako zákazník.');
+                        window.location.href = '/login';
+                    }
+                })
+                .catch(error => {
+                    console.error('Chyba při kontrole přihlášení:', error);
+                    window.location.href = '/login';
+                });
+        }
+    </script>
+</body>
+</html>
