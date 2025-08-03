@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Objednávka služby - Rychlé Rýče</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link href="style.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigační lišta -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-success">
+        <div class="container">
+            <a class="navbar-brand text-white fw-bold" href="/">
+                <i class="fas fa-seedling me-2"></i>Rychlé Rýče
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a href="/customer-dashboard" class="btn btn-outline-light btn-sm me-2">Dashboard</a>
+                <button class="btn btn-outline-light btn-sm" onclick="logout()">Odhlásit se</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Objednávkový formulář -->
+    <div class="container mt-4">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="form-container">
+                    <div class="text-center mb-4">
+                        <i id="service-icon" class="fas fa-cut fa-3x text-success mb-3"></i>
+                        <h2>Objednávka služby</h2>
+                        <h4 id="service-title" class="text-success">Sekání trávy</h4>
+                        <p id="service-price" class="text-muted">Orientační cena: ~20 Kč/m²</p>
+                    </div>
+
+                    <form id="orderForm" enctype="multipart/form-data">
+                        <input type="hidden" id="work_type" name="work_type">
+                        
+                        <!-- Kontaktní údaje -->
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-4">
+                                <label for="customer_name" class="form-label">
+                                    <i class="fas fa-user me-2"></i>Jméno *
+                                </label>
+                                <input type="text" class="form-control" id="customer_name" name="customer_name" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="customer_phone" class="form-label">
+                                    <i class="fas fa-phone me-2"></i>Telefon *
+                                </label>
+                                <input type="tel" class="form-control" id="customer_phone" name="customer_phone" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="customer_email" class="form-label">
+                                    <i class="fas fa-envelope me-2"></i>Email *
+                                </label>
+                                <input type="email" class="form-control" id="customer_email" name="customer_email" required>
+                            </div>
+                        </div>
+
+                        <!-- Adresa -->
+                        <div class="mb-4">
+                            <label for="address" class="form-label">
+                                <i class="fas fa-map-marker-alt me-2"></i>Adresa *
+                            </label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="address" name="address" 
+                                       placeholder="Zadejte adresu..." required>
+                                <button class="btn btn-outline-success" type="button" onclick="searchAddress()">
+                                    <i class="fas fa-search"></i> Najít
+                                </button>
+                            </div>
+                            <div class="form-text">Zadejte přesnou adresu místa, kde má být práce vykonána</div>
+                        </div>
+
+                        <!-- Mapa -->
+                        <div class="mb-4">
+                            <label class="form-label">
+                                <i class="fas fa-map me-2"></i>Poloha na mapě
+                            </label>
+                            <div id="map" class="map-container"></div>
+                            <input type="hidden" id="latitude" name="latitude">
+                            <input type="hidden" id="longitude" name="longitude">
+                        </div>
+
+                        <!-- Popis práce -->
+                        <div class="mb-4">
+                            <label for="description" class="form-label">
+                                <i class="fas fa-align-left me-2"></i>Detailní popis práce
+                            </label>
+                            <textarea class="form-control" id="description" name="description" rows="4" 
+                                      placeholder="Popište podrobně, co potřebujete udělat..."></textarea>
+                            <div class="form-text">Čím podrobnější popis, tím lépe dokážeme odhadnout cenu a čas</div>
+                        </div>
+
+                        <!-- Nářadí -->
+                        <div class="mb-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="has_tools" name="has_tools">
+                                <label class="form-check-label" for="has_tools">
+                                    <i class="fas fa-toolbox me-2"></i>
+                                    <strong>Mám vlastní nářadí</strong>
+                                </label>
+                            </div>
+                            <div class="form-text">Zaškrtněte, pokud máte k dispozici potřebné nářadí pro danou práci</div>
+                        </div>
+
+                        <!-- Upload fotek -->
+                        <div class="mb-4">
+                            <label for="photos" class="form-label">
+                                <i class="fas fa-camera me-2"></i>Fotografie (nepovinné)
+                            </label>
+                            <input type="file" class="form-control" id="photos" name="photos" 
+                                   accept="image/*" multiple>
+                            <div class="form-text">Můžete nahrát až 3 fotky místa, kde má být práce vykonána</div>
+                            <div id="photo-preview" class="photo-preview"></div>
+                        </div>
+
+                        <!-- Odhad ceny -->
+                        <div class="alert alert-info mb-4">
+                            <h6><i class="fas fa-calculator me-2"></i>Orientační odhad ceny</h6>
+                            <div id="price-calculation">
+                                <p class="mb-1">Typ práce: <span id="calc-service"></span></p>
+                                <p class="mb-1">Základní sazba: <span id="calc-rate"></span></p>
+                                <p class="mb-0 fw-bold">Celková odhadovaná cena: <span id="calc-total" class="text-success"></span></p>
+                            </div>
+                            <small class="text-muted">*Konečná cena může být jiná podle skutečného rozsahu práce</small>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="/" class="btn btn-outline-secondary me-md-2">Zrušit</a>
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-paper-plane me-2"></i>Odeslat objednávku
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="app.js"></script>
+    <script>
+        let map;
+        let marker;
+        let selectedService = '';
+
+        // Inicializace při načtení stránky
+        document.addEventListener('DOMContentLoaded', function() {
+            // Kontrola přihlášení
+            checkAuth();
+            
+            // Získání typu služby z URL
+            const urlParams = new URLSearchParams(window.location.search);
+            selectedService = urlParams.get('service') || 'sekani_travy';
+            
+            // Nastavení formuláře podle vybrané služby
+            setupServiceForm(selectedService);
+            
+            // Inicializace mapy
+            initializeMap();
+            
+            // Načtení uživatelských údajů
+            loadUserData();
+        });
+
+        // Nastavení formuláře podle typu služby
+        function setupServiceForm(serviceType) {
+            const serviceData = {
+                'sekani_travy': {
+                    title: 'Sekání trávy',
+                    icon: 'fas fa-cut',
+                    price: '~20 Kč/m²',
+                    rate: 20
+                },
+                'strhani_stromu': {
+                    title: 'Stříhání stromů/keřů',
+                    icon: 'fas fa-tree',
+                    price: '~500 Kč/strom',
+                    rate: 500
+                },
+                'natrani_plotu': {
+                    title: 'Natírání plotu',
+                    icon: 'fas fa-paint-roller',
+                    price: '~15 Kč/m',
+                    rate: 15
+                },
+                'jina_prace': {
+                    title: 'Jiná práce',
+                    icon: 'fas fa-tools',
+                    price: '~200 Kč/hod',
+                    rate: 200
+                }
+            };
+
+            const service = serviceData[serviceType];
+            if (service) {
+                document.getElementById('service-icon').className = service.icon + ' fa-3x text-success mb-3';
+                document.getElementById('service-title').textContent = service.title;
+                document.getElementById('service-price').textContent = 'Orientační cena: ' + service.price;
+                document.getElementById('work_type').value = serviceType;
+                
+                // Aktualizace cenového kalkulátoru
+                document.getElementById('calc-service').textContent = service.title;
+                document.getElementById('calc-rate').textContent = service.price;
+                document.getElementById('calc-total').textContent = service.price;
+            }
+        }
+
+        // Inicializace mapy
+        function initializeMap() {
+            // Výchozí poloha - Ostrava
+            const defaultLat = 49.8209;
+            const defaultLng = 18.2625;
+            
+            map = L.map('map').setView([defaultLat, defaultLng], 13);
+            
+            L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(map);
+            
+            // Kliknutí na mapu
+            map.on('click', function(e) {
+                setMapMarker(e.latlng.lat, e.latlng.lng);
+                reverseGeocode(e.latlng.lat, e.latlng.lng);
+            });
+        }
+
+        // Nastavení markeru na mapě
+        function setMapMarker(lat, lng) {
+            if (marker) {
+                map.removeLayer(marker);
+            }
+            
+            marker = L.marker([lat, lng]).addTo(map);
+            document.getElementById('latitude').value = lat;
+            document.getElementById('longitude').value = lng;
+        }
+
+        // Vyhledání adresy
+        async function searchAddress() {
+            const address = document.getElementById('address').value;
+            if (!address) {
+                showNotification('Zadejte adresu', 'warning');
+                return;
+            }
+
+            try {
+                const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&countrycodes=cz`);
+                const data = await response.json();
+                
+                if (data && data.length > 0) {
+                    const result = data[0];
+                    const lat = parseFloat(result.lat);
+                    const lng = parseFloat(result.lon);
+                    
+                    map.setView([lat, lng], 16);
+                    setMapMarker(lat, lng);
+                    
+                    showNotification('Adresa nalezena na mapě', 'success');
+                } else {
+                    showNotification('Adresa nebyla nalezena', 'warning');
+                }
+            } catch (error) {
+                console.error('Chyba při vyhledávání adresy:', error);
+                showNotification('Chyba při vyhledávání adresy', 'danger');
+            }
+        }
+
+        // Zpětné geokódování (získání adresy z GPS)
+        async function reverseGeocode(lat, lng) {
+            try {
+                const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`);
+                const data = await response.json();
+                
+                if (data && data.display_name) {
+                    document.getElementById('address').value = data.display_name;
+                }
+            } catch (error) {
+                console.error('Chyba při zpětném geokódování:', error);
+            }
+        }
+
+        // Načtení údajů uživatele
+        async function loadUserData() {
+            try {
+                const response = await fetch('/api/check-auth');
+                const data = await response.json();
+                
+                if (data.authenticated && data.role === 'customer') {
+                    // Můžeme načíst další údaje uživatele z databáze pokud jsou uložené
+                    document.getElementById('customer_name').value = data.name || '';
+                }
+            } catch (error) {
+                console.error('Chyba při načítání údajů uživatele:', error);
+            }
+        }
+
+        // Preview fotek
+        document.getElementById('photos').addEventListener('change', function(e) {
+            const preview = document.getElementById('photo-preview');
+            preview.innerHTML = '';
+            
+            if (e.target.files.length > 3) {
+                showNotification('Můžete nahrát maximálně 3 fotky', 'warning');
+                e.target.value = '';
+                return;
+            }
+            
+            Array.from(e.target.files).forEach(file => {
+                if (file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const img = document.createElement('img');
+                        img.src = e.target.result;
+                        preview.appendChild(img);
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        });
+
+        // Odeslání formuláře
+        document.getElementById('orderForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // Kontrola GPS souřadnic
+            if (!document.getElementById('latitude').value || !document.getElementById('longitude').value) {
+                showNotification('Klikněte na mapu nebo vyhledejte adresu pro nastavení polohy', 'warning');
+                return;
+            }
+
+            const formData = new FormData(e.target);
+            
+            try {
+                const response = await fetch('/api/orders', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    showNotification('Objednávka byla úspěšně vytvořena!', 'success');
+                    setTimeout(() => {
+                        window.location.href = '/customer-dashboard';
+                    }, 2000);
+                } else {
+                    showNotification(result.error || 'Chyba při vytváření objednávky', 'danger');
+                }
+            } catch (error) {
+                console.error('Chyba při odesílání objednávky:', error);
+                showNotification('Chyba spojení se serverem', 'danger');
+            }
+        });
+    </script>
+</body>
+</html>
