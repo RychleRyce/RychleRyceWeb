@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Rychlé Rýče</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="style.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigační lišta -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-warning">
+        <div class="container">
+            <a class="navbar-brand text-dark fw-bold" href="/">
+                <i class="fas fa-crown me-2"></i>Admin Panel - Rychlé Rýče
+            </a>
+            <div class="navbar-nav ms-auto">
+                <span class="text-dark me-3">Administrátor: <span id="user-name"></span></span>
+                <button class="btn btn-outline-dark btn-sm" onclick="logout()">Odhlásit se</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Dashboard header -->
+    <div class="bg-light py-4">
+        <div class="container">
+            <h2><i class="fas fa-tachometer-alt me-2 text-warning"></i>Administrační panel</h2>
+            <p class="text-muted mb-0">Správa objednávek a brigádníků</p>
+        </div>
+    </div>
+
+    <!-- Dashboard obsah -->
+    <div class="container mt-4">
+        <!-- Statistiky -->
+        <div class="row g-4 mb-5">
+            <div class="col-md-2">
+                <div class="dashboard-card text-center">
+                    <i class="fas fa-clipboard-list fa-2x text-primary mb-2"></i>
+                    <h4 id="total-orders" class="mb-1">0</h4>
+                    <p class="text-muted mb-0">Celkem objednávek</p>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="dashboard-card text-center">
+                    <i class="fas fa-clock fa-2x text-warning mb-2"></i>
+                    <h4 id="pending-orders" class="mb-1">0</h4>
+                    <p class="text-muted mb-0">Čeká na přijetí</p>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="dashboard-card text-center">
+                    <i class="fas fa-cogs fa-2x text-info mb-2"></i>
+                    <h4 id="active-orders" class="mb-1">0</h4>
+                    <p class="text-muted mb-0">Probíhá</p>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="dashboard-card text-center">
+                    <i class="fas fa-check-circle fa-2x text-success mb-2"></i>
+                    <h4 id="completed-orders" class="mb-1">0</h4>
+                    <p class="text-muted mb-0">Dokončeno</p>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="dashboard-card text-center">
+                    <i class="fas fa-users fa-2x text-secondary mb-2"></i>
+                    <h4 id="total-workers" class="mb-1">0</h4>
+                    <p class="text-muted mb-0">Brigádníci</p>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="dashboard-card text-center">
+                    <i class="fas fa-euro-sign fa-2x text-success mb-2"></i>
+                    <h4 id="total-revenue" class="mb-1">0 Kč</h4>
+                    <p class="text-muted mb-0">Celkový obrat</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <ul class="nav nav-tabs mb-4" id="adminTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="orders-tab" data-bs-toggle="tab" data-bs-target="#orders" type="button">
+                    <i class="fas fa-clipboard-list me-2"></i>Objednávky
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="workers-tab" data-bs-toggle="tab" data-bs-target="#workers" type="button">
+                    <i class="fas fa-users me-2"></i>Brigádníci
+                </button>
+            </li>
+        </ul>
+
+        <!-- Tab content -->
+        <div class="tab-content" id="adminTabContent">
+            <!-- Objednávky -->
+            <div class="tab-pane fade show active" id="orders" role="tabpanel">
+                <div class="admin-table">
+                    <div class="p-3">
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-3">
+                                <select class="form-select" id="orders-status-filter">
+                                    <option value="">Všechny statusy</option>
+                                    <option value="pending">Čeká na přijetí</option>
+                                    <option value="accepted">Probíhá</option>
+                                    <option value="completed">Dokončeno</option>
+                                    <option value="cancelled">Zrušeno</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <select class="form-select" id="orders-type-filter">
+                                    <option value="">Všechny typy</option>
+                                    <option value="sekani_travy">Sekání trávy</option>
+                                    <option value="strhani_stromu">Stříhání stromů/keřů</option>
+                                    <option value="natrani_plotu">Natírání plotu</option>
+                                    <option value="jina_prace">Jiná práce</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <input type="date" class="form-control" id="orders-date-filter">
+                            </div>
+                            <div class="col-md-3">
+                                <button class="btn btn-outline-primary w-100" onclick="applyOrderFilters()">
+                                    <i class="fas fa-filter me-2"></i>Filtrovat
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Zákazník</th>
+                                    <th>Typ práce</th>
+                                    <th>Brigádník</th>
+                                    <th>Status</th>
+                                    <th>Cena</th>
+                                    <th>Datum</th>
+                                    <th>Akce</th>
+                                </tr>
+                            </thead>
+                            <tbody id="orders-table-body">
+                                <tr>
+                                    <td colspan="8" class="text-center">
+                                        <div class="loading">
+                                            <i class="fas fa-spinner fa-spin"></i> Načítám objednávky...
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Brigádníci -->
+            <div class="tab-pane fade" id="workers" role="tabpanel">
+                <div class="admin-table">
+                    <div class="p-3">
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-4">
+                                <input type="text" class="form-control" id="workers-search" placeholder="Hledat podle jména nebo oblasti...">
+                            </div>
+                            <div class="col-md-4">
+                                <select class="form-select" id="workers-tools-filter">
+                                    <option value="">Všechno nářadí</option>
+                                    <option value="sekacka">Sekačka</option>
+                                    <option value="nuzky">Zahradní nůžky</option>
+                                    <option value="pila">Pila</option>
+                                    <option value="stetce">Štětce</option>
+                                    <option value="lestve">Žebřík/lešení</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <button class="btn btn-outline-primary w-100" onclick="applyWorkerFilters()">
+                                    <i class="fas fa-search me-2"></i>Hledat
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Jméno</th>
+                                    <th>Email</th>
+                                    <th>Telefon</th>
+                                    <th>Oblast</th>
+                                    <th>Nářadí</th>
+                                    <th>Registrace</th>
+                                    <th>Akce</th>
+                                </tr>
+                            </thead>
+                            <tbody id="workers-table-body">
+                                <tr>
+                                    <td colspan="8" class="text-center">
+                                        <div class="loading">
+                                            <i class="fas fa-spinner fa-spin"></i> Načítám brigádníky...
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal pro detail objednávky -->
+    <div class="modal fade" id="orderDetailModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-info-circle me-2"></i>Detail objednávky
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="admin-order-detail-content">
+                    <!-- Obsah se načte dynamicky -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script src="app.js"></script>
+    <script>
+        let allOrders = [];
+        let filteredOrders = [];
+        let allWorkers = [];
+        let filteredWorkers = [];
+
+        // Inicializace při načtení stránky
+        document.addEventListener('DOMContentLoaded', function() {
+            checkAuth();
+            loadOrders();
+            loadWorkers();
+        });
+
+        // Načtení všech objednávek
+        async function loadOrders() {
+            try {
+                const response = await fetch('/api/admin/orders');
+                const data = await response.json();
+                
+                if (response.ok) {
+                    allOrders = data;
+                    filteredOrders = [...allOrders];
+                    displayOrders();
+                    updateStatistics();
+                } else {
+                    throw new Error(data.error || 'Chyba při načítání objednávek');
+                }
+            } catch (error) {
+                console.error('Chyba při načítání objednávek:', error);
+                document.getElementById('orders-table-body').innerHTML = `
+                    <tr>
+                        <td colspan="8" class="text-center text-danger">
+                            <i class="fas fa-exclamation-circle me-2"></i>Chyba při načítání objednávek
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+
+        // Načtení všech brigádníků
+        async function loadWorkers() {
+            try {
+                const response = await fetch('/api/admin/workers');
+                const data = await response.json();
+                
+                if (response.ok) {
+                    allWorkers = data;
+                    filteredWorkers = [...allWorkers];
+                    displayWorkers();
+                    updateStatistics();
+                } else {
+                    throw new Error(data.error || 'Chyba při načítání brigádníků');
+                }
+            } catch (error) {
+                console.error('Chyba při načítání brigádníků:', error);
+                document.getElementById('workers-table-body').innerHTML = `
+                    <tr>
+                        <td colspan="8" class="text-center text-danger">
+                            <i class="fas fa-exclamation-circle me-2"></i>Chyba při načítání brigádníků
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+
+        // Zobrazení objednávek v tabulce
+        function displayOrders() {
+            const tbody = document.getElementById('orders-table-body');
+            
+            if (filteredOrders.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="8" class="text-center text-muted">
+                            <i class="fas fa-search me-2"></i>Žádné objednávky nevyhovují filtru
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            let html = '';
+            filteredOrders.forEach(order => {
+                const workType = translateWorkType(order.work_type);
+                const status = translateStatus(order.status);
+                const statusClass = getStatusClass(order.status);
+                const date = new Date(order.created_at).toLocaleDateString('cs-CZ');
+                
+                html += `
+                    <tr>
+                        <td><strong>#${order.id}</strong></td>
+                        <td>
+                            ${order.customer_name}<br>
+                            <small class="text-muted">${order.customer_email}</small>
+                        </td>
+                        <td>${workType}</td>
+                        <td>
+                            ${order.worker_name || '<span class="text-muted">Nepřiřazeno</span>'}<br>
+                            ${order.worker_email ? `<small class="text-muted">${order.worker_email}</small>` : ''}
+                        </td>
+                        <td><span class="status-badge ${statusClass}">${status}</span></td>
+                        <td><strong>${order.estimated_price} Kč</strong></td>
+                        <td>${date}</td>
+                        <td>
+                            <button class="btn btn-outline-info btn-sm" onclick="showAdminOrderDetail(${order.id})" title="Detail">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            tbody.innerHTML = html;
+        }
+
+        // Zobrazení brigádníků v tabulce
+        function displayWorkers() {
+            const tbody = document.getElementById('workers-table-body');
+            
+            if (filteredWorkers.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="8" class="text-center text-muted">
+                            <i class="fas fa-search me-2"></i>Žádní brigádníci nevyhovují filtru
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            let html = '';
+            filteredWorkers.forEach(worker => {
+                const tools = worker.tools ? worker.tools.split(',').join(', ') : 'Žádné';
+                const registrationDate = new Date(worker.created_at).toLocaleDateString('cs-CZ');
+                
+                html += `
+                    <tr>
+                        <td><strong>#${worker.id}</strong></td>
+                        <td>${worker.name}</td>
+                        <td>${worker.email}</td>
+                        <td>${worker.phone || '-'}</td>
+                        <td>${worker.area || '-'}</td>
+                        <td><small>${tools}</small></td>
+                        <td>${registrationDate}</td>
+                        <td>
+                            <button class="btn btn-outline-info btn-sm" onclick="viewWorkerDetails(${worker.id})" title="Detail">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            tbody.innerHTML = html;
+        }
+
+        // Aktualizace statistik
+        function updateStatistics() {
+            const stats = {
+                total: allOrders.length,
+                pending: 0,
+                accepted: 0,
+                completed: 0,
+                revenue: 0
+            };
+
+            allOrders.forEach(order => {
+                switch(order.status) {
+                    case 'pending':
+                        stats.pending++;
+                        break;
+                    case 'accepted':
+                        stats.accepted++;
+                        break;
+                    case 'completed':
+                        stats.completed++;
+                        stats.revenue += order.estimated_price || 0;
+                        break;
+                }
+            });
+
+            document.getElementById('total-orders').textContent = stats.total;
+            document.getElementById('pending-orders').textContent = stats.pending;
+            document.getElementById('active-orders').textContent = stats.accepted;
+            document.getElementById('completed-orders').textContent = stats.completed;
+            document.getElementById('total-workers').textContent = allWorkers.length;
+            document.getElementById('total-revenue').textContent = stats.revenue.toLocaleString('cs-CZ') + ' Kč';
+        }
+
+        // Aplikování filtrů objednávek
+        function applyOrderFilters() {
+            const statusFilter = document.getElementById('orders-status-filter').value;
+            const typeFilter = document.getElementById('orders-type-filter').value;
+            const dateFilter = document.getElementById('orders-date-filter').value;
+
+            filteredOrders = allOrders.filter(order => {
+                if (statusFilter && order.status !== statusFilter) return false;
+                if (typeFilter && order.work_type !== typeFilter) return false;
+                if (dateFilter) {
+                    const orderDate = new Date(order.created_at).toISOString().split('T')[0];
+                    if (orderDate !== dateFilter) return false;
+                }
+                return true;
+            });
+
+            displayOrders();
+        }
+
+        // Aplikování filtrů brigádníků
+        function applyWorkerFilters() {
+            const searchFilter = document.getElementById('workers-search').value.toLowerCase();
+            const toolsFilter = document.getElementById('workers-tools-filter').value;
+
+            filteredWorkers = allWorkers.filter(worker => {
+                if (searchFilter) {
+                    const searchableText = `${worker.name} ${worker.area || ''}`.toLowerCase();
+                    if (!searchableText.includes(searchFilter)) return false;
+                }
+                if (toolsFilter && (!worker.tools || !worker.tools.includes(toolsFilter))) {
+                    return false;
+                }
+                return true;
+            });
+
+            displayWorkers();
+        }
+
+        // Zobrazení detailu objednávky pro admina
+        function showAdminOrderDetail(orderId) {
+            const order = allOrders.find(o => o.id === orderId);
+            if (!order) return;
+
+            const workType = translateWorkType(order.work_type);
+            const status = translateStatus(order.status);
+            const date = formatDate(order.created_at);
+
+            // Fotky
+            let photosHtml = '';
+            if (order.photos) {
+                const photos = order.photos.split(',');
+                photosHtml = `
+                    <h6>Fotografie:</h6>
+                    <div class="row g-2 mb-3">
+                        ${photos.map(photo => 
+                            `<div class="col-md-4">
+                                <img src="/uploads/${photo}" alt="Foto" class="img-fluid rounded" style="max-height: 200px; object-fit: cover;">
+                            </div>`
+                        ).join('')}
+                    </div>
+                `;
+            }
+
+            const content = `
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Základní informace:</h6>
+                        <table class="table table-sm">
+                            <tr><td><strong>ID:</strong></td><td>#${order.id}</td></tr>
+                            <tr><td><strong>Typ práce:</strong></td><td>${workType}</td></tr>
+                            <tr><td><strong>Status:</strong></td><td><span class="status-badge ${getStatusClass(order.status)}">${status}</span></td></tr>
+                            <tr><td><strong>Cena:</strong></td><td class="text-success fw-bold">~${order.estimated_price} Kč</td></tr>
+                            <tr><td><strong>Datum:</strong></td><td>${date}</td></tr>
+                            <tr><td><strong>Nářadí:</strong></td><td>${order.has_tools ? '✅ Má vlastní' : '❌ Potřebuje'}</td></tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Kontakty:</h6>
+                        <table class="table table-sm">
+                            <tr><td><strong>Zákazník:</strong></td><td>${order.customer_name}</td></tr>
+                            <tr><td><strong>Email:</strong></td><td>${order.customer_email}</td></tr>
+                            <tr><td><strong>Telefon:</strong></td><td>${order.customer_phone || '-'}</td></tr>
+                            <tr><td><strong>Brigádník:</strong></td><td>${order.worker_name || 'Nepřiřazeno'}</td></tr>
+                            ${order.worker_email ? `<tr><td><strong>Email brigádníka:</strong></td><td>${order.worker_email}</td></tr>` : ''}
+                            ${order.worker_phone ? `<tr><td><strong>Telefon brigádníka:</strong></td><td>${order.worker_phone}</td></tr>` : ''}
+                        </table>
+                    </div>
+                </div>
+                
+                <h6>Adresa:</h6>
+                <p>${order.address}</p>
+                
+                ${order.description ? `<h6>Popis práce:</h6><p>${order.description}</p>` : ''}
+                
+                ${photosHtml}
+                
+                ${order.rating ? `
+                    <h6>Hodnocení zákazníka:</h6>
+                    <div class="rating-stars mb-2">${createStarRating(order.rating)}</div>
+                    ${order.feedback ? `<p class="fst-italic">"${order.feedback}"</p>` : ''}
+                ` : ''}
+            `;
+
+            document.getElementById('admin-order-detail-content').innerHTML = content;
+            const modal = new bootstrap.Modal(document.getElementById('orderDetailModal'));
+            modal.show();
+        }
+
+        // Zobrazení detailu brigádníka
+        function viewWorkerDetails(workerId) {
+            const worker = allWorkers.find(w => w.id === workerId);
+            if (!worker) return;
+
+            // Najdeme objednávky tohoto brigádníka
+            const workerOrders = allOrders.filter(o => o.worker_id === workerId);
+            const completedOrders = workerOrders.filter(o => o.status === 'completed');
+            const totalEarnings = completedOrders.reduce((sum, order) => sum + (order.estimated_price || 0), 0);
+
+            const tools = worker.tools ? worker.tools.split(',').join(', ') : 'Žádné';
+            const registrationDate = formatDate(worker.created_at);
+
+            const content = `
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Osobní údaje:</h6>
+                        <table class="table table-sm">
+                            <tr><td><strong>ID:</strong></td><td>#${worker.id}</td></tr>
+                            <tr><td><strong>Jméno:</strong></td><td>${worker.name}</td></tr>
+                            <tr><td><strong>Email:</strong></td><td>${worker.email}</td></tr>
+                            <tr><td><strong>Telefon:</strong></td><td>${worker.phone || '-'}</td></tr>
+                            <tr><td><strong>Oblast:</strong></td><td>${worker.area || '-'}</td></tr>
+                            <tr><td><strong>Registrace:</strong></td><td>${registrationDate}</td></tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Statistiky:</h6>
+                        <table class="table table-sm">
+                            <tr><td><strong>Celkem zakázek:</strong></td><td>${workerOrders.length}</td></tr>
+                            <tr><td><strong>Dokončeno:</strong></td><td>${completedOrders.length}</td></tr>
+                            <tr><td><strong>Aktivní:</strong></td><td>${workerOrders.filter(o => o.status === 'accepted').length}</td></tr>
+                            <tr><td><strong>Celkový výdělek:</strong></td><td class="text-success fw-bold">${totalEarnings.toLocaleString('cs-CZ')} Kč</td></tr>
+                        </table>
+                    </div>
+                </div>
+                
+                <h6>Dostupné nářadí:</h6>
+                <p>${tools}</p>
+                
+                ${workerOrders.length > 0 ? `
+                    <h6>Poslední zakázky:</h6>
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Typ práce</th>
+                                    <th>Status</th>
+                                    <th>Cena</th>
+                                    <th>Datum</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${workerOrders.slice(0, 5).map(order => `
+                                    <tr>
+                                        <td>#${order.id}</td>
+                                        <td>${translateWorkType(order.work_type)}</td>
+                                        <td><span class="status-badge ${getStatusClass(order.status)}">${translateStatus(order.status)}</span></td>
+                                        <td>${order.estimated_price} Kč</td>
+                                        <td>${new Date(order.created_at).toLocaleDateString('cs-CZ')}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                ` : '<p class="text-muted">Zatím žádné zakázky</p>'}
+            `;
+
+            document.getElementById('admin-order-detail-content').innerHTML = content;
+            const modal = new bootstrap.Modal(document.getElementById('orderDetailModal'));
+            modal.show();
+        }
+
+        // Event listeners pro filtry
+        document.getElementById('orders-status-filter').addEventListener('change', applyOrderFilters);
+        document.getElementById('orders-type-filter').addEventListener('change', applyOrderFilters);
+        document.getElementById('orders-date-filter').addEventListener('change', applyOrderFilters);
+        document.getElementById('workers-search').addEventListener('input', applyWorkerFilters);
+        document.getElementById('workers-tools-filter').addEventListener('change', applyWorkerFilters);
+
+        // Event listeners pro taby
+        document.getElementById('orders-tab').addEventListener('click', loadOrders);
+        document.getElementById('workers-tab').addEventListener('click', loadWorkers);
+    </script>
+</body>
+</html>
